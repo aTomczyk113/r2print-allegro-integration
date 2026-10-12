@@ -16,13 +16,36 @@ Przebieg:
 
 Panel administracyjny sklepu (Filament) pozwala właścicielowi: połączyć konto Allegro (OAuth2 Device Flow), zarządzać mapowaniem ofert na produkty oraz włączać/wyłączać automatyzację.
 
-## Jakich uprawnień (scope) używa
+To jest **żywy, rozwijany back-office sprzedawcy** dla zamówień z Allegro, nie jednorazowy skrypt — integracja z API Allegro jest rozbudowywana sukcesywnie w miarę kolejnych potrzeb sklepu. Obecnie (stan opisany wyżej) działa wyłącznie odczyt zamówień. W bezpośrednim planie rozwoju:
 
-Aplikacja **wyłącznie odczytuje** dane zamówień — nic nie zapisuje z powrotem do Allegro, nie obsługuje ocen, sporów ani wiadomości.
+- **Drukowanie etykiet nadawczych i zlecanie odbioru kuriera** bezpośrednio z panelu sklepu, bez przełączania się na stronę Allegro, dla zamówień realizowanych przez Allegro.
+- **Zarządzanie statusem zamówienia** z panelu: numer śledzenia, oznaczanie jako wysłane.
+- **Zarządzanie ofertami** (tworzenie/edycja/publikacja) z tego samego panelu co reszta katalogu produktów sklepu, zamiast osobno na Allegro.
+- **Obsługa wiadomości, ocen i sporów** z kupującymi z poziomu jednego, wspólnego back-office, zamiast osobno na Allegro.
 
-| Scope | Użycie |
-|---|---|
-| `allegro:api:orders:read` | `GET /order/events` + `GET /order/checkout-forms/{id}` — jedyne wywołania do API Allegro w całej integracji. |
+## Jakich uprawnień (scope) używa / o jakie wnioskuje
+
+| Scope | Status | Zastosowanie |
+|---|---|---|
+| `allegro:api:orders:read` | **Używane dziś** | `GET /order/events` + `GET /order/checkout-forms/{id}` — jedyne wywołania w aktualnie działającej automatyzacji (patrz wyżej). |
+| `allegro:api:orders:write` | Planowane | Numer śledzenia, status zamówienia, tworzenie/usuwanie przesyłki z poziomu panelu sklepu. |
+| `allegro:api:shipments:read` | Planowane | Odczyt danych przesyłek i etykiet nadawczych. |
+| `allegro:api:shipments:write` | Planowane | Tworzenie przesyłki i zlecanie odbioru kuriera — drukowanie etykiety bez wychodzenia z panelu sklepu. |
+| `allegro:api:sale:offers:read` / `:write` | Planowane | Zarządzanie ofertami Allegro z tego samego panelu co reszta katalogu produktów. |
+| `allegro:api:sale:settings:read` / `:write` | Planowane | Cenniki dostaw i polityki zwrotów współdzielone z ustawieniami dostawy w sklepie. |
+| `allegro:api:profile:read` / `:write` | Planowane | Podgląd statystyk/ocen konta sprzedawcy w panelu sklepu. |
+| `allegro:api:ratings` | Planowane | Obsługa ocen kupujących z jednego back-office. |
+| `allegro:api:disputes` | Planowane | Obsługa sporów transakcyjnych z jednego back-office. |
+| `allegro:api:messaging` | Planowane | Obsługa wiadomości z kupującymi z jednego back-office. |
+| `allegro:api:billing:read` | Planowane | Podgląd rozliczeń Allegro w panelu sklepu. |
+| `allegro:api:payments:read` / `:write` | Planowane | Podgląd płatności i obsługa zwrotów z poziomu panelu sklepu. |
+| `allegro:api:campaigns` | Planowane | Zgłaszanie ofert do oznaczeń i programów specjalnych Allegro. |
+| `allegro:api:affiliate:read` / `:write` | Planowane | Program partnerski Allegro. |
+
+Celowo pominięte:
+- `allegro:api:fulfillment:*` — dotyczy wyłącznie usługi magazynowej "One Fulfillment by Allegro", z której sklep nie korzysta (towar pakowany i wysyłany jest samodzielnie).
+- `allegro:api:bids` — licytowanie jako kupujący w aukcjach; sklep występuje tu wyłącznie jako sprzedawca.
+- `allegro:api:ads` — zarządzanie kampaniami Allegro Ads; nieistotne dla tej integracji, a samo uprawnienie jest zapowiedziane przez Allegro do wycofania.
 
 Autoryzacja: **OAuth2 Device Flow** (typ aplikacji „bez przeglądarki" / no-browser) — jednorazowa, interaktywna zgoda właściciela konta, dalej działa bez udziału człowieka na tokenach odświeżających.
 
