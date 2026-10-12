@@ -6,7 +6,7 @@ Panel firmowy obsługuje całość działalności firmy — sklep internetowy **
 
 ## Do czego służy ta aplikacja
 
-Firma sprzedaje część swoich produktów (ulotki, naklejki, kalendarze, wizytówki itd.) również jako aukcje na Allegro, równolegle do sprzedaży w sklepie internetowym. Po stronie Allegro nie ma webhooków na nowe zamówienia, więc aplikacja **cyklicznie odpytuje Allegro o nowe, opłacone zamówienia** i dla każdego z nich automatycznie generuje wewnętrzny kod rabatowy, wysyłany mailem do kupującego — kod pozwala mu zaprojektować i zamówić swój produkt bezpośrednio w sklepie internetowym firmy, bez dodatkowej płatności (już opłacił przez Allegro). To jedyne miejsce, gdzie ten moduł integracji dotyka sklepu — poza tym działa niezależnie.
+Firma sprzedaje część swoich produktów (ulotki, naklejki, kalendarze, wizytówki itd.) również jako aukcje na Allegro. Produkty te wymagają personalizacji przez kupującego (np. wgrania własnego projektu graficznego do druku), więc po stronie Allegro nie ma webhooków na nowe zamówienia, aplikacja **cyklicznie odpytuje Allegro o nowe, opłacone zamówienia** i dla każdego z nich automatycznie wysyła kupującemu mailem link do narzędzia do personalizacji zamówionego produktu — zamówienie jest już w pełni opłacone przez Allegro, ten krok służy wyłącznie do dostarczenia szczegółów/projektu graficznego potrzebnych do realizacji.
 
 Przebieg:
 1. Zadanie cykliczne (co 5 minut, `allegro:sync-orders`) odpytuje `GET /order/events`.
