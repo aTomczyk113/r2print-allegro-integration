@@ -72,6 +72,16 @@ database/migrations/                                   Migracje: ustawienia + ta
 
 Kod korzysta z wewnętrznych klas panelu firmowego (`App\Settings\ShopSettings` — przechowuje dane uwierzytelniające i tokeny, `App\Models\ProductCoupon` — istniejący, niezależny system kodów rabatowych), które nie są częścią tego repozytorium, ponieważ dotyczą całej platformy, a nie samej integracji z Allegro.
 
+## Ochrona danych kupujących
+
+Jedyne dane osobowe, do jakich integracja ma dostęp, to adres e-mail kupującego, pobierany z danych zamówienia Allegro (`GET /order/checkout-forms/{id}`). Jest on używany **wyłącznie w locie**, do jednorazowej wysyłki maila z kodem rabatowym (`App\Mail\AllegroCouponCreated`) — **nie jest zapisywany w żadnej tabeli ani logu**. Rekord kodu rabatowego (`ProductCoupon`) przechowuje tylko ID zamówienia Allegro, kod i powiązane produkty — bez żadnych danych kupującego. Dane nie są przekazywane żadnym podmiotom trzecim.
+
+## Ciągłość działania klucza API
+
+Integracja działa w sposób ciągły (zadanie cykliczne co 5 minut, 24/7), nie jednorazowo czy sporadycznie — co jednocześnie utrzymuje regularny ruch na kluczu API, zgodnie z wymaganiami regulaminu REST API Allegro dotyczącymi aktywności klucza.
+
+Skala ruchu (pojedyncze zapytania co kilka minut) jest rzędy wielkości poniżej limitów zapytań API Allegro.
+
 ## Środowiska
 
 Sandbox i produkcja Allegro to dwa osobne hosty i dwa osobne konta/aplikacje (nie tylko inny klucz) — przełączane niezależnie w panelu, z osobnymi tokenami dla każdego środowiska.
