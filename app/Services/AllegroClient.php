@@ -65,6 +65,17 @@ class AllegroClient
         return $this->sandbox ? $base . '_sandbox' : $base;
     }
 
+    /**
+     * Allegro wymaga, zeby kazde zapytanie identyfikowalo sie naglowkiem
+     * User-Agent wskazujacym konkretna aplikacje i jej dokumentacje
+     * (regulamin REST API Allegro) - bez tego request idzie "anonimowo"
+     * z domyslnym User-Agentem klienta HTTP.
+     */
+    private function userAgent(): string
+    {
+        return 'R2print-Allegro-Integration/1.0 (+https://github.com/aTomczyk113/r2print-allegro-integration)';
+    }
+
     private function assertCredentials(): void
     {
         if (!$this->clientId || !$this->clientSecret) {
@@ -85,6 +96,7 @@ class AllegroClient
         $this->assertCredentials();
 
         $response = Http::asForm()
+            ->withHeaders(['User-Agent' => $this->userAgent()])
             ->withBasicAuth($this->clientId, $this->clientSecret)
             ->post($this->authHost . '/auth/oauth/device', [
                 'client_id' => $this->clientId,
@@ -107,6 +119,7 @@ class AllegroClient
         $this->assertCredentials();
 
         $response = Http::asForm()
+            ->withHeaders(['User-Agent' => $this->userAgent()])
             ->withBasicAuth($this->clientId, $this->clientSecret)
             ->post($this->authHost . '/auth/oauth/token', [
                 'grant_type'  => 'urn:ietf:params:oauth:grant-type:device_code',
@@ -148,6 +161,7 @@ class AllegroClient
         }
 
         $response = Http::asForm()
+            ->withHeaders(['User-Agent' => $this->userAgent()])
             ->withBasicAuth($this->clientId, $this->clientSecret)
             ->post($this->authHost . '/auth/oauth/token', [
                 'grant_type'    => 'refresh_token',
@@ -194,7 +208,10 @@ class AllegroClient
     private function request(string $method, string $path, array $query = []): array
     {
         $response = Http::withToken($this->settings->{$this->settingKey('allegro_access_token')})
-            ->withHeaders(['Accept' => 'application/vnd.allegro.public.v1+json'])
+            ->withHeaders([
+                'Accept'     => 'application/vnd.allegro.public.v1+json',
+                'User-Agent' => $this->userAgent(),
+            ])
             ->{$method}($this->apiHost . $path, $query);
 
         if ($response->failed()) {

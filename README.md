@@ -4,6 +4,14 @@ Dokumentacja i kod źródłowy integracji wewnętrznego **panelu firmowego R2pri
 
 Panel firmowy obsługuje całość działalności firmy — sklep internetowy **[r2print.pl](https://r2print.pl)** to jedna z jego części, Allegro to kolejna, osobna część tego samego panelu (sprzedaż na Allegro i sprzedaż w sklepie internetowym to dwa niezależne kanały obsługiwane z jednego miejsca). To repozytorium zawiera **wyłącznie fragment kodu odpowiedzialny za integrację z Allegro**, wyodrębniony z prywatnego repozytorium całego panelu (Laravel 13 + Filament 5). Reszta platformy (sklep, katalog produktów, płatności, konfiguratory druku itd.) pozostaje prywatna.
 
+## Podsumowanie na potrzeby weryfikacji aplikacji
+
+- **Jak aplikacja wykorzystuje publiczne API Allegro** — wyłącznie przez oficjalne, udokumentowane endpointy REST API Allegro (`developer.allegro.pl`), patrz sekcja "Jakich uprawnień używa" niżej za pełną listę wywoływanych endpointów.
+- **Jak działa** — patrz "Do czego służy ta aplikacja" i "Przebieg" niżej: zadanie cykliczne odpytuje API co 5 minut, panel administracyjny (Filament) daje właścicielowi kontrolę nad połączeniem i konfiguracją.
+- **Jakie cele realizuje** — automatyzacja obsługi sprzedaży na Allegro w ramach wewnętrznego panelu firmowego R2print: wykrywanie opłaconych zamówień, docelowo też zarządzanie ofertami, przesyłkami i komunikacją z kupującymi (patrz tabela uprawnień niżej, kolumna "Status").
+- **Jak autoryzuje użytkowników aplikacji** — OAuth2 Device Flow (typ aplikacji "bez przeglądarki" zgodny z rejestracją), jednorazowa interaktywna zgoda właściciela konta Allegro, dalej token odświeżający bez udziału człowieka. Szczegóły w sekcji "Jakich uprawnień używa" niżej.
+- **Jak spełnia wymagania regulaminu REST API Allegro** — każde zapytanie do API identyfikuje się nagłówkiem `User-Agent` wskazującym tę aplikację i adres tej dokumentacji (`app/Services/AllegroClient.php`, metoda `userAgent()`); aplikacja używa oficjalnej wersji publicznej API (`Accept: application/vnd.allegro.public.v1+json`); dane uwierzytelniające (client secret, tokeny) nigdy nie trafiają do repozytorium ani logów, przechowywane są wyłącznie w bazie danych panelu; token odświeżający jest rotowany i zapisywany zgodnie z zasadami API Allegro (jednorazowe użycie).
+
 ## Do czego służy ta aplikacja
 
 Firma sprzedaje część swoich produktów (ulotki, naklejki, kalendarze, wizytówki itd.) również jako aukcje na Allegro. Produkty te wymagają personalizacji przez kupującego (np. wgrania własnego projektu graficznego do druku), więc po stronie Allegro nie ma webhooków na nowe zamówienia, aplikacja **cyklicznie odpytuje Allegro o nowe, opłacone zamówienia** i dla każdego z nich automatycznie wysyła kupującemu mailem link do narzędzia do personalizacji zamówionego produktu — zamówienie jest już w pełni opłacone przez Allegro, ten krok służy wyłącznie do dostarczenia szczegółów/projektu graficznego potrzebnych do realizacji.
